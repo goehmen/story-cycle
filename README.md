@@ -88,6 +88,14 @@ cp /tmp/story-cycle/.claude/skills/*.md .claude/skills/
 chmod +x scripts/*.sh scripts/git-hooks/*
 ```
 
+Check which hook path your repository uses:
+
+```bash
+git config core.hooksPath
+```
+
+Nothing returned means hooks live in `.git/hooks/` and the commands below apply as written. A path returned, such as `.husky` for a project using [husky](https://typicode.github.io/husky/), means install there instead. Copying into `.git/hooks/` while `core.hooksPath` is set produces hooks that never run, with no error.
+
 Install the hooks:
 
 ```bash

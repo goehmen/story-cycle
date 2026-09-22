@@ -417,25 +417,22 @@ Step-02 shows the token count and offers a split above 1600. **Take the split.**
 | `.claude/skills/plan-gate.md` | `.claude/skills/` | Checklist applied at CHECKPOINT 1. From v5's `story-validate.md`. |
 | `.claude/skills/cr-findings.md` | `.claude/skills/` | Stage 4 findings format. Re-pointed at `spec-{slug}.md`. |
 | `.claude/skills/scratchpad.md` | `.claude/skills/` | Stage 5 mid-session state |
-| `_bmad/custom/bmad-build.toml` | `_bmad/custom/` | Committed. Pins the full-spec route for Epic 1. |
+| `_bmad/custom/bmad-build.toml` | `_bmad/custom/` | Committed. Blocks the one-shot route while patterns are forming. |
 
-### Git hooks on this repo
+### Git hooks
 
-**Check for existing hooks before writing any.** A repository may already carry hooks in `.git/hooks/`, untracked and easy to miss. If a secret scanner or similar pre-commit hook is already there, append the marker check to it rather than replacing it, and put the scanner first so a leak is caught even on an authorized commit.
+**Check which hook path your repository uses before installing anything.** Git reads hooks from `.git/hooks/` unless `core.hooksPath` is set. Husky sets it to `.husky`, at which point `.git/hooks/` is ignored entirely. Run `git config core.hooksPath`: nothing returned means `.git/hooks/`, a path returned means install there instead. Installing into the wrong one produces hooks that never run, with no error and no warning. The commands below assume `.git/hooks/`; substitute if yours differs.
 
-**Husky is not used here and should not be introduced.** This repo runs hooks from the default `.git/hooks/` path, with `core.hooksPath` unset. Installing husky sets `core.hooksPath` to `.husky`, at which point git stops reading `.git/hooks/` entirely and the existing gitleaks scan silently stops running. No error, no warning.
+**Check for an existing `pre-commit` hook before writing one.** A repository may already carry one, untracked and easy to miss. If it is there, append to it rather than replacing it, and keep any secret scanner first so a leak is caught even on an authorized commit.
 
-Existing `pre-commit`:
+**With no existing hooks,** install the shipped pair. The `pre-commit` secret scan is guarded, so it works whether or not gitleaks is on your PATH:
 
-```sh
-#!/bin/sh
-gitleaks protect --staged --no-banner || {
-  echo "Potential secret detected. Commit blocked."
-  exit 1
-}
+```bash
+cp scripts/git-hooks/pre-commit scripts/git-hooks/post-commit .git/hooks/
+chmod +x .git/hooks/pre-commit .git/hooks/post-commit
 ```
 
-Append the marker check **after** gitleaks, so a leak is caught even on an authorized commit:
+**With an existing `pre-commit`,** append only the marker check:
 
 ```bash
 cat >> .git/hooks/pre-commit <<'HOOK'
@@ -447,24 +444,14 @@ cat >> .git/hooks/pre-commit <<'HOOK'
 HOOK
 ```
 
-Create `post-commit`:
+`post-commit` is what makes one marker authorize exactly one commit:
 
-```bash
-cat > .git/hooks/post-commit <<'HOOK'
+```sh
 #!/bin/sh
 rm -f .claude/.stage-6-active
-HOOK
-chmod +x .git/hooks/post-commit
 ```
 
-Then track copies, since `.git/` never leaves this machine:
-
-```bash
-mkdir -p scripts/git-hooks
-cp .git/hooks/pre-commit .git/hooks/post-commit .git/hooks/pre-push scripts/git-hooks/
-```
-
-Bootstrap on a new clone: `cp scripts/git-hooks/* .git/hooks/ && chmod +x .git/hooks/*`.
+`.git/hooks/` is not version controlled and does not survive a clone. Keep copies in `scripts/git-hooks/` and bootstrap a new clone with `cp scripts/git-hooks/* .git/hooks/ && chmod +x .git/hooks/*`. If you edit a hook, copy it back.
 
 **Once the marker check is live, every commit needs the ritual**, including scaffolding commits. That is why hooks go last in the setup sequence.
 
@@ -1039,7 +1026,7 @@ Direct pushes to `main` are refused by the pre-push hook. That is correct and al
 | `bmad-build` refuses to start | Check `uv --version`. The installer only warned; build halts. |
 | An override seems not to apply | `resolve_customization.py --key workflow`. Check placement and filename. |
 | An update broke an override | You copied the whole `customize.toml`. Trim to only changed fields. |
-| Tempted to install husky | Do not. It sets `core.hooksPath` and silently disables the gitleaks hook. |
+| Hooks do not seem to fire | Check `git config core.hooksPath`. A path such as `.husky` means `.git/hooks/` is ignored entirely. |
 
 ## Tips and Troubleshooting
 
