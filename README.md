@@ -71,16 +71,150 @@ Story Cycle versions are bound to BMAD releases, because BMAD's Phase 4 skills c
 
 On a BMAD release older than 6.11.0, this guide will not match your installed skills.
 
-## Adopting it
+## Installing into your project
 
-1. Install BMAD in your project and confirm `uv run python -V` reports 3.11 or later.
-2. Copy `scripts/`, `.vscode/tasks.json`, and `.claude/skills/` into your repository.
-3. Install the hooks: `cp scripts/git-hooks/* .git/hooks/ && chmod +x .git/hooks/*`. If your repo already has a pre-commit hook, append the marker check to it rather than replacing it, and keep any secret scanner first.
-4. Write your `AGENTS.md` and `CLAUDE.md`. The guide's "Agent Instruction Files" section covers what earns a line in those files and what actively hurts.
-5. Fill in the project-specific section at the bottom of `.claude/skills/plan-gate.md` with checks particular to your stack.
-6. Read the guide.
+From your project root, with BMAD already installed:
 
-Decide early what your repository tracks. BMAD's installed trees are regenerable and produce noisy diffs on every update, so they are usually better ignored. Your planning artifacts directory is not optional: `bmad-build` commits the spec as part of its run, so an untracked artifacts directory gets swept into a story commit.
+```bash
+git clone https://github.com/goehmen/story-cycle.git /tmp/story-cycle
+
+mkdir -p scripts/git-hooks .vscode .claude/skills
+cp /tmp/story-cycle/scripts/*.sh scripts/
+cp /tmp/story-cycle/scripts/git-hooks/* scripts/git-hooks/
+cp /tmp/story-cycle/.vscode/tasks.json .vscode/
+cp /tmp/story-cycle/.claude/skills/*.md .claude/skills/
+chmod +x scripts/*.sh scripts/git-hooks/*
+```
+
+Install the hooks:
+
+```bash
+cp scripts/git-hooks/* .git/hooks/ && chmod +x .git/hooks/*
+```
+
+If your repository already has a `pre-commit` hook, do not overwrite it. Append the marker check to the existing file instead, and keep any secret scanner first so a leak is caught even on an authorized commit:
+
+```bash
+cat >> .git/hooks/pre-commit <<'HOOK'
+
+[ -f .claude/.stage-6-active ] || {
+  echo "Refused: no .claude/.stage-6-active marker. Commit not authorized."
+  exit 1
+}
+HOOK
+```
+
+Add to your `.gitignore`:
+
+```
+.claude/.stage-6-active
+.claude/scratchpad.md
+```
+
+The marker especially. If it is ever committed it exists in every clone, the commit gate passes unconditionally forever, and the authorization boundary is silently defeated.
+
+Then:
+
+1. Turn on VS Code automatic tasks, once per machine. Command Palette, "Preferences: Open User Settings (JSON)", add `"task.allowAutomaticTasks": "on"`. Without this the six terminals will not spawn and nothing will tell you why.
+2. Write your `AGENTS.md` and `CLAUDE.md`. The guide's "Agent Instruction Files" section covers what earns a line in those files and what actively hurts. `bmad-project-context` will produce a first draft of `AGENTS.md`.
+3. Fill in the project-specific section at the bottom of `.claude/skills/plan-gate.md` with checks particular to your stack.
+4. Decide what git tracks. BMAD's installed trees are regenerable and produce noisy diffs on every update, so they are usually better ignored. Your planning artifacts directory is not optional: `bmad-build` commits the spec as part of its run, so an untracked artifacts directory gets swept into a story commit.
+
+## Your first story
+
+Assuming BMAD planning is complete and you have epics plus a sprint status file. Substitute your own story number and slug throughout.
+
+**Stage 1, pick the story.** Any shell, on `main`:
+
+```
+claude
+/model sonnet
+show sprint status
+```
+
+It recommends a next story by mechanical priority ordering. You decide whether that is the right next thing. Close the session.
+
+**Stage 0, set up.** Quit VS Code first, then:
+
+```bash
+./scripts/story-start.sh 1-1 your-story-slug
+```
+
+A fresh VS Code window opens with six named terminals. On a repository VS Code has never opened, a trust prompt appears over the terminal panel and can make it look like nothing spawned. Grant trust and they are there.
+
+**Stage 2, plan.** In the `plan` terminal:
+
+```
+claude
+/model opus
+/effort max
+also follow .claude/skills/plan-gate.md when build presents CHECKPOINT 1
+/bmad-build implement story 1-1 from the sprint status file. Do not take the one-shot route. Write the full spec and present CHECKPOINT 1.
+```
+
+Three things are yours here. If build detects two independently shippable goals it halts and offers to split; take the split. It then presents Open Questions and halts; it is forbidden from inventing those answers, and yours get frozen into the spec. If the spec exceeds 1600 tokens it offers a scope split; take that too.
+
+At CHECKPOINT 1, choose **Approve and stop**, never "Approve and continue." Close the session.
+
+**Stage 2b, validate the spec.** In the `spec-review` terminal:
+
+```
+claude
+/model sonnet
+follow .claude/skills/plan-gate.md to validate _bmad-output/implementation-artifacts/spec-1-1-your-story-slug.md
+```
+
+Close the session.
+
+**Stage 3, implement.** In the `implement` terminal, authorize the commit first:
+
+```bash
+touch .claude/.stage-6-active
+```
+
+```
+claude
+/model opus
+/effort max
+/bmad-build resume _bmad-output/implementation-artifacts/spec-1-1-your-story-slug.md
+```
+
+Build reads `status: ready-for-dev` and jumps straight to implementation. At the end it offers to open a PR. Decline. Read `deferred-work.md`. Close the session.
+
+**Stage 4, independent review.** In the `review` terminal, never the `implement` one:
+
+```
+claude
+/model sonnet
+/bmad-code-review think harder
+```
+
+Supply the spec path when it asks. This matters: it sets `review_mode = full`, which is what enables the Acceptance Auditor layer and the `decision_needed` route. Then:
+
+```
+follow .claude/skills/cr-findings.md when writing the Code Review Findings section to _bmad-output/implementation-artifacts/spec-1-1-your-story-slug.md
+```
+
+**Stage 5, fix.** In the `fix` terminal:
+
+```
+claude
+/model opus
+also follow .claude/skills/scratchpad.md to maintain mid-session state at .claude/scratchpad.md
+review the Code Review Findings section in _bmad-output/implementation-artifacts/spec-1-1-your-story-slug.md and resolve all findings
+```
+
+If anything changed, go back to the `review` terminal for a short repeat pass. That is what sets the story to `done`, and nothing else does.
+
+**Stages 6 through 9** are in the guide. Walkthrough and manual smoke, then push, PR, merge, then `./scripts/story-cleanup.sh story/1-1-your-story-slug`.
+
+### The five things that go wrong
+
+1. Forgetting the marker before Stage 3. Build does all the work, then its commit is refused.
+2. Choosing "Approve and continue" at CHECKPOINT 1. Collapses Stages 2 and 3 into one session and loses the isolation the design rests on.
+3. Running code review in the `implement` terminal. Same failure, worse: the review inherits the build's framing.
+4. Letting build take the one-shot route. One review layer instead of three, and no checkpoint at all.
+5. Leaving a story at `review`. `bmad-code-review` sets `done` only on a clean pass, and nothing else in the cycle syncs status. This one is silent: nothing errors, the story just never closes, and the next story loses its continuity while the epic cannot close.
 
 ## Status
 
