@@ -1,0 +1,4 @@
+.DS_Store
+.claude/.stage-6-active
+.claude/scratchpad.md
+docs/**/*.html
