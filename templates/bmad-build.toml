@@ -1,0 +1,28 @@
+# Template from https://github.com/goehmen/story-cycle
+#
+# Copy to _bmad/custom/bmad-build.toml in your project.
+#
+# What this does: blocks bmad-build's one-shot route. On that route build
+# writes a three-section spec, skips CHECKPOINT 1 entirely, and runs one
+# review layer instead of three. That is a reasonable trade for routine
+# changes and the wrong one for work that sets patterns.
+#
+# This is an instruction the agent should follow, not a gate it cannot
+# pass. Repeat it in the Stage 2 invocation as well.
+#
+# Remove it once your project's patterns are stable and genuinely routine
+# changes start appearing. Add a comment naming the epic it is scoped to,
+# or it becomes permanent by default.
+#
+# Verify the override resolves before relying on it:
+#
+#   uv run _bmad/scripts/resolve_customization.py \
+#     --skill "$(pwd)/.claude/skills/bmad-build" \
+#     --project-root "$(pwd)" \
+#     --key workflow.activation_steps_append
+
+[workflow]
+
+activation_steps_append = [
+  "Never take the one-shot route on this project. Always write the full spec and present CHECKPOINT 1.",
+]

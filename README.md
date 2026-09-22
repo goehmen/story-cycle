@@ -51,6 +51,7 @@ The full reference is [`docs/story-cycle-guide-v6.5.md`](docs/story-cycle-guide-
 | `.claude/skills/plan-gate.md` | The spec validation checklist |
 | `.claude/skills/cr-findings.md` | Findings format for the independent review |
 | `.claude/skills/scratchpad.md` | Mid-session state externalization |
+| `templates/` | Starting points for the two files you author yourself |
 
 ## Requirements
 
@@ -116,9 +117,10 @@ The marker especially. If it is ever committed it exists in every clone, the com
 Then:
 
 1. Turn on VS Code automatic tasks, once per machine. Command Palette, "Preferences: Open User Settings (JSON)", add `"task.allowAutomaticTasks": "on"`. Without this the six terminals will not spawn and nothing will tell you why.
-2. Write your `AGENTS.md` and `CLAUDE.md`. The guide's "Agent Instruction Files" section covers what earns a line in those files and what actively hurts. `bmad-project-context` will produce a first draft of `AGENTS.md`.
-3. Fill in the project-specific section at the bottom of `.claude/skills/plan-gate.md` with checks particular to your stack.
-4. Decide what git tracks. BMAD's installed trees are regenerable and produce noisy diffs on every update, so they are usually better ignored. Your planning artifacts directory is not optional: `bmad-build` commits the spec as part of its run, so an untracked artifacts directory gets swept into a story commit.
+2. Write your `AGENTS.md` and `CLAUDE.md`. `bmad-project-context` produces a verified first draft of `AGENTS.md`; start the other from [`templates/CLAUDE.md`](templates/CLAUDE.md). The guide's "Agent Instruction Files" section covers what earns a line in those files and what actively hurts.
+3. Block the one-shot route while your patterns are still forming: `mkdir -p _bmad/custom && cp /tmp/story-cycle/templates/bmad-build.toml _bmad/custom/`. The file's comments explain what it does and when to remove it.
+4. Fill in the project-specific section at the bottom of `.claude/skills/plan-gate.md` with checks particular to your stack.
+5. Decide what git tracks. BMAD's installed trees are regenerable and produce noisy diffs on every update, so they are usually better ignored. Your planning artifacts directory is not optional: `bmad-build` commits the spec as part of its run, so an untracked artifacts directory gets swept into a story commit.
 
 ## Your first story
 
