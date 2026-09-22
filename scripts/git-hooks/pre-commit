@@ -1,0 +1,10 @@
+#!/bin/sh
+gitleaks protect --staged --no-banner || {
+  echo "Potential secret detected. Commit blocked."
+  exit 1
+}
+
+[ -f .claude/.stage-6-active ] || {
+  echo "Refused: no .claude/.stage-6-active marker. Commit not authorized."
+  exit 1
+}

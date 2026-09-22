@@ -2,3 +2,4 @@
 .claude/.stage-6-active
 .claude/scratchpad.md
 docs/**/*.html
+!docs/_pandoc/header.html

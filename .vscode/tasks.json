@@ -1,0 +1,111 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Story Cycle: Spawn 6 Terminals",
+      "dependsOrder": "parallel",
+      "dependsOn": [
+        "plan",
+        "spec-review",
+        "implement",
+        "review",
+        "fix",
+        "ops"
+      ],
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "plan",
+      "type": "shell",
+      "isBackground": true,
+      "command": "SLUG=$(git branch --show-current | sed 's|^story/||'); echo '# Stage 2 \u2014 Plan (Opus, /effort max, Plan Mode OFF)'; echo '# Build writes the spec to disk. Plan Mode breaks it.'; echo '# In claude-code, run in order:'; echo '#   /model opus'; echo '#   /effort max'; echo '#   also follow .claude/skills/plan-gate.md when build presents CHECKPOINT 1'; echo \"#   /bmad-build implement story ${SLUG} from the sprint status file. Do not take the one-shot route \u2014 write the full spec and present CHECKPOINT 1.\"; echo '#'; echo '# Yours at this stage:'; echo '#   1. Multi-goal split \u2014 take it unless coupling risk is real'; echo '#   2. Open Questions \u2014 build cannot invent these; your answers get frozen'; echo '#   3. Token gate \u2014 over 1600 tokens, take the split'; echo '#'; echo '# AT CHECKPOINT 1: choose \"Approve and stop\". Never \"Approve and continue\".'; echo \"# Spec lands at: _bmad-output/implementation-artifacts/spec-${SLUG}.md\"; exec $SHELL",
+      "presentation": {
+        "echo": false,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "spec-review",
+      "type": "shell",
+      "isBackground": true,
+      "command": "SLUG=$(git branch --show-current | sed 's|^story/||'); echo '# Stage 2b \u2014 Spec Review (Sonnet, plain thinking, Plan Mode OFF)'; echo '# Fresh session. The validator must not share context with the creator.'; echo '# In claude-code, run in order:'; echo '#   /model sonnet'; echo \"#   follow .claude/skills/plan-gate.md to validate _bmad-output/implementation-artifacts/spec-${SLUG}.md\"; echo '#'; echo '# For a spec with a real design tradeoff, use instead:'; echo '#   /bmad-party-mode --party anti-consensus-club --mode subagent'; echo '#   (--mode subagent is NOT optional: default session mode voices every'; echo '#    persona through one model and manufactures agreement)'; echo '#'; echo '# Lighter alternative when one section needs sharpening:'; echo '#   /bmad-advanced-elicitation'; echo '#'; echo '# CONSTRAINT: <frozen-after-approval> is locked. Only you may edit it, and'; echo '# editing it means a decision you recorded was wrong. Everything outside'; echo '# it (Code Map, Tasks & Acceptance, Verification) is fair game.'; exec $SHELL",
+      "presentation": {
+        "echo": false,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "implement",
+      "type": "shell",
+      "isBackground": true,
+      "command": "SLUG=$(git branch --show-current | sed 's|^story/||'); echo '# Stage 3 \u2014 Implement (Opus, /effort max, Plan Mode OFF)'; echo '# HIGHEST compaction risk in the cycle.'; echo '#'; echo '# FIRST, authorize the commit build will make at step-05:'; echo '#   touch .claude/.stage-6-active'; echo '#'; echo '# Then in claude-code, run in order:'; echo '#   /model opus'; echo '#   /effort max'; echo \"#   /bmad-build resume _bmad-output/implementation-artifacts/spec-${SLUG}.md\"; echo '#'; echo '# Build reads status: ready-for-dev and jumps straight to step-03.'; echo '# It implements, reviews with 3 parallel layers, triages, and commits.'; echo '#'; echo '# Loopbacks: intent_gap (returns to you) | bad_spec | patch | defer'; echo '# review_loop_iteration halts above 5. Three loopbacks = weak spec.'; echo '#'; echo '# AT THE END: build offers a PR. DECLINE. Stage 4 first, push is Stage 8.'; echo '# Then read _bmad-output/implementation-artifacts/deferred-work.md'; exec $SHELL",
+      "presentation": {
+        "echo": false,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "review",
+      "type": "shell",
+      "isBackground": true,
+      "command": "SLUG=$(git branch --show-current | sed 's|^story/||'); echo '# Stage 4 \u2014 Independent Review (Sonnet, think harder, Plan Mode OFF)'; echo '# CRITICAL: never run this in the implement terminal. The isolation IS the product.'; echo '# In claude-code, run in order:'; echo '#   /model sonnet'; echo '#   /bmad-code-review think harder'; echo \"#   (give it the spec: _bmad-output/implementation-artifacts/spec-${SLUG}.md)\"; echo \"#   follow .claude/skills/cr-findings.md when writing the Code Review Findings section to _bmad-output/implementation-artifacts/spec-${SLUG}.md\"; echo '#'; echo '# GIVE IT THE SPEC. That sets review_mode=full, which enables the'; echo '# Acceptance Auditor layer and the decision_needed triage route.'; echo '# Build has neither. That is why this stage exists.'; echo '#'; echo '# A decision_needed finding is the highest-value output here. Answer it yourself.'; echo '#'; echo '# Repeat passes: stop when findings are mostly low-value corner cases.'; echo '# Non-trivial findings on a third pass mean something upstream is wrong'; echo '# (weak spec, contradiction, ambiguous rules). Fix that, not another pass.'; echo '#'; echo '# THIS STAGE SETS done. code-review sets it only when every decision-needed'; echo '# and patch finding is resolved and no unresolved high/medium remains.'; echo '# Nothing later in the cycle syncs story status.'; echo '#'; echo '# If this pass found real issues: fix at Stage 5, then come BACK here for a'; echo '# short repeat pass to verify and close. A story left at review blocks the'; echo '# next story/s continuity and blocks the epic retrospective.'; echo '#'; echo \"#   grep '${SLUG}' _bmad-output/implementation-artifacts/sprint-status.yaml\"; echo '#'; echo '# Ignore any final-menu suggestion to run dev-story. That skill is deprecated.'; exec $SHELL",
+      "presentation": {
+        "echo": false,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "fix",
+      "type": "shell",
+      "isBackground": true,
+      "command": "SLUG=$(git branch --show-current | sed 's|^story/||'); echo '# Stage 5 \u2014 Fix Issues (Opus, plain thinking; escalate to think harder only'; echo '#            for architectural ambiguity. Plan Mode OFF)'; echo '# In claude-code, run in order:'; echo '#   /model opus'; echo '#   also follow .claude/skills/scratchpad.md to maintain mid-session state at .claude/scratchpad.md'; echo \"#   review the Code Review Findings section in _bmad-output/implementation-artifacts/spec-${SLUG}.md and resolve all findings\"; echo '#   (to skip specific findings: \"resolve findings H1, M1, L2\" with explicit IDs)'; echo '#'; echo '# Scope is NARROW. Build already fixed what belonged to its own change.'; echo '# This handles only what the independent review added on top.'; echo '# If this stage is routinely empty, record it \u2014 the experiment is answering itself.'; echo '# More than six findings? Split: H+M in one session, L in another.'; echo '#'; echo '# BEFORE LEAVING: if you changed anything, the story is still at review.'; echo '# Return to the review terminal for a repeat pass. That is what sets done.'; echo \"#   grep '${SLUG}' _bmad-output/implementation-artifacts/sprint-status.yaml\"; echo '#'; echo '# === Stage 7 (Commit) \u2014 happens in this terminal, only if Stage 5 changed files ==='; echo '# In the common path there is NOTHING to do: build already committed at Stage 3.'; echo '# If Stage 5 changed files:'; echo '#   touch .claude/.stage-6-active'; echo \"#   git add <files> _bmad-output/implementation-artifacts/spec-${SLUG}.md\"; echo '#   git commit -m \"fix: <message>\"'; echo '# Prefer a separate fix: commit over amending build/s. Push is Stage 8.'; exec $SHELL",
+      "presentation": {
+        "echo": false,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ops",
+      "type": "shell",
+      "isBackground": true,
+      "command": "SLUG=$(git branch --show-current | sed 's|^story/||'); echo '# ops \u2014 Stages 1, 6, 8, 9 (Sonnet, plain thinking)'; echo '#'; echo '# === Stage 1 \u2014 Select and Gate (before Stage 0, on main) ==='; echo '#   /model sonnet'; echo '#   show sprint status'; echo '#   (recommendation is mechanical priority ordering \u2014 override freely)'; echo '#   \"validate sprint status\" checks format; \"fix sprint status\" repairs it'; echo '#   epic re-scoping is bmad-correct-course, not sprint-planning'; echo '#'; echo '# === Stage 6 \u2014 Walkthrough and Smoke ==='; echo '#   /model sonnet'; echo '#   /bmad-walkthrough'; echo '#   Human review, not agentic. No linters, no tests, no severities.'; echo '#   5 steps: Orientation, Walkthrough by concern, Detail Pass, Testing, Wrap-Up.'; echo '#   AT WRAP-UP: decline the push and PR offer. Stage 8 owns that.'; echo '#   Then smoke test manually. Human gate, no agent role.'; echo '#   Optional, user-facing surface only:'; echo '#     /bmad-qa-generate-e2e-tests Create API and E2E tests for <feature>.'; echo '#'; echo '# === Stage 8 \u2014 Push, PR, CI, Merge ==='; echo \"#   git push -u origin story/${SLUG}\"; echo '#   gh pr create --title \"feat: <description>\" --body-file /tmp/pr-body.md'; echo '#   gh pr checks <number>        # wait for green'; echo '#   (smoke test in preview \u2014 human gate)'; echo '#   gh pr merge <number> --squash --delete-branch'; echo '#   Broke something after push? git revert HEAD, fresh chat, new approach.'; echo '#'; echo '# === Stage 9 \u2014 Cleanup and Epic Close ==='; echo \"#   ./scripts/story-cleanup.sh story/${SLUG}\"; echo '#   At epic close (MANDATORY in this framework):'; echo '#     /bmad-retrospective -H <epic>'; echo '#     /bmad-project-context          # audit intent, prune AGENTS.md'; echo '#     triage deferred-work.md'; exec $SHELL",
+      "presentation": {
+        "echo": false,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": []
+    }
+  ]
+}

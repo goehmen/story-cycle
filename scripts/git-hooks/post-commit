@@ -1,0 +1,2 @@
+#!/bin/sh
+rm -f .claude/.stage-6-active
