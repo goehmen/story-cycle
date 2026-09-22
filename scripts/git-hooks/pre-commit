@@ -1,9 +1,16 @@
 #!/bin/sh
-gitleaks protect --staged --no-banner || {
-  echo "Potential secret detected. Commit blocked."
-  exit 1
-}
+# Optional secret scan. Runs only when gitleaks is installed, so this hook
+# does not break for adopters who do not use it. Keep it before the marker
+# check so a leak is caught even on an authorized commit.
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --no-banner || {
+    echo "Potential secret detected. Commit blocked."
+    exit 1
+  }
+fi
 
+# Story Cycle commit gate. A human creates the marker before each commit; the
+# post-commit hook removes it, so every commit needs fresh authorization.
 [ -f .claude/.stage-6-active ] || {
   echo "Refused: no .claude/.stage-6-active marker. Commit not authorized."
   exit 1
