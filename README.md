@@ -60,6 +60,7 @@ The full reference is [`docs/story-cycle-guide-v6.5.md`](docs/story-cycle-guide-
 - `uv` with Python 3.11 or later. BMAD's rendered skills halt without it, and the BMAD installer only warns rather than blocking, so an install can look healthy and fail at first build.
 - Node 20.12 or later, `git`, `gh`, VS Code with the `code` CLI
 - pandoc, only if you want the document build script
+- [gitleaks](https://github.com/gitleaks/gitleaks), optional. The shipped `pre-commit` hook runs a secret scan when gitleaks is on your PATH and skips it silently when it is not, so the hook works either way. Installing it (`brew install gitleaks`) means every commit is scanned before the authorization check.
 
 ## Version compatibility
 
