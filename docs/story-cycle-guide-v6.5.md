@@ -926,6 +926,7 @@ Also:
 - Triage `deferred-work.md`. Every entry has `source_spec` and `evidence`. Nothing else in the workflow clears this file.
 - Update project documentation affected by the epic.
 - Manage Claude projects: add docs, update changed docs, clean up chats.
+- If the guide's version changed during this epic, publish the updated copy wherever it is shared and re-check that the README's Status section is still true.
 
 ---
 
